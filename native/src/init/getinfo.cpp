@@ -86,7 +86,7 @@ static bool check_key_combo() {
             continue;
         memset(bitmask, 0, sizeof(bitmask));
         ioctl(fd, EVIOCGBIT(EV_KEY, sizeof(bitmask)), bitmask);
-        if (test_bit(KEY_VOLUMEUP, bitmask))
+        if (test_bit(KEY_POWER, bitmask))
             events.push_back(fd);
         else
             close(fd);
@@ -96,19 +96,19 @@ static bool check_key_combo() {
 
     run_finally fin([&] { for_each(events.begin(), events.end(), close); });
 
-    // Return true if volume up key is held for more than 3 seconds
+    // Return true if power key is held for more than 5 seconds
     int count = 0;
-    for (int i = 0; i < 500; ++i) {
+    for (int i = 0; i < 700; ++i) {
         for (const int &fd : events) {
             memset(bitmask, 0, sizeof(bitmask));
             ioctl(fd, EVIOCGKEY(sizeof(bitmask)), bitmask);
-            if (test_bit(KEY_VOLUMEUP, bitmask)) {
+            if (test_bit(KEY_POWER, bitmask)) {
                 count++;
                 break;
             }
         }
-        if (count >= 300) {
-            LOGD("KEY_VOLUMEUP detected: disable system-as-root\n");
+        if (count >= 500) {
+            LOGD("KEY_POWER detected: disable system-as-root\n");
             return true;
         }
         // Check every 10ms
